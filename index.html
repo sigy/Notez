@@ -77,7 +77,7 @@
 
         /* Tabs */
         .tabs {
-            margin-bottom: 1.5rem;
+            margin-bottom: 0;
         }
 
         .tab-list {
@@ -110,7 +110,7 @@
 
         .tab-content {
             display: none;
-            padding-top: 1.5rem;
+            padding: 1.5rem;
         }
 
         .tab-content.active {
@@ -199,11 +199,12 @@
         /* Grid */
         .grid {
             display: grid;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
-        .grid-cols-2 {
-            grid-template-columns: repeat(2, 1fr);
+        .song-load-grid {
+            grid-template-columns: 1fr auto;
+            align-items: end;
         }
 
         .grid-cols-3 {
@@ -235,8 +236,9 @@
 
         #notation {
             padding: 2rem;
-            min-height: 250px;
+            min-height: 300px;
             overflow-x: auto;
+            background: white;
         }
 
         /* Note Editor */
@@ -333,7 +335,7 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .grid-cols-2, .grid-cols-3 {
+            .song-load-grid, .grid-cols-3 {
                 grid-template-columns: 1fr;
             }
 
@@ -355,17 +357,14 @@
             color: hsl(var(--muted-foreground));
         }
 
-        /* Flex utilities */
-        .flex {
-            display: flex;
+        /* ABC.js Note Highlighting */
+        .abcjs-highlight {
+            fill: hsl(var(--primary)) !important;
+            opacity: 0.8;
         }
 
-        .items-center {
-            align-items: center;
-        }
-
-        .gap-2 {
-            gap: 0.5rem;
+        .abcjs-note.abcjs-highlight path {
+            fill: hsl(var(--primary)) !important;
         }
     </style>
 </head>
@@ -382,22 +381,21 @@
                 <div class="tab-list">
                     <button class="tab-trigger active" data-tab="songs">📚 Načíst píseň</button>
                     <button class="tab-trigger" data-tab="editor">✏️ Editor not</button>
+                    <button class="tab-trigger" data-tab="settings">⚙️ Nastavení</button>
                 </div>
 
                 <!-- Tab: Načíst píseň -->
                 <div class="tab-content active" id="tab-songs">
-                    <div class="grid grid-cols-2">
+                    <div class="grid song-load-grid">
                         <div>
                             <label for="songSelect">Vyberte píseň</label>
                             <select id="songSelect">
                                 <option value="">-- Vyberte píseň --</option>
                             </select>
                         </div>
-                        <div style="display: flex; align-items: flex-end;">
-                            <button class="btn btn-primary" id="loadSongBtn" style="width: 100%;">
-                                📂 Načíst píseň
-                            </button>
-                        </div>
+                        <button class="btn btn-primary" id="loadSongBtn">
+                            Načíst
+                        </button>
                     </div>
                 </div>
 
@@ -414,33 +412,80 @@
                                 <option value="g/4">G</option>
                                 <option value="a/4">A</option>
                                 <option value="b/4">B</option>
-                                <option value="c/5">C (vyšší)</option>
-                                <option value="d/5">D (vyšší)</option>
-                                <option value="e/5">E (vyšší)</option>
+                                <option value="c/5">C⁵</option>
+                                <option value="d/5">D⁵</option>
+                                <option value="e/5">E⁵</option>
                             </select>
                         </div>
                         <div>
                             <label for="durationSelect">Délka</label>
                             <select id="durationSelect">
-                                <option value="w">Celá nota (𝅝)</option>
-                                <option value="h">Půlová nota (𝅗𝅥)</option>
-                                <option value="q" selected>Čtvrťová nota (♩)</option>
-                                <option value="8">Osminová nota (♪)</option>
+                                <option value="w">Celá (𝅝)</option>
+                                <option value="h">Půlová (𝅗𝅥)</option>
+                                <option value="q" selected>Čtvrťová (♩)</option>
+                                <option value="8">Osminová (♪)</option>
                             </select>
                         </div>
                         <div style="display: flex; align-items: flex-end;">
                             <button class="btn btn-primary" id="addNoteBtn" style="width: 100%;">
-                                ➕ Přidat notu
+                                ➕ Přidat
                             </button>
                         </div>
                     </div>
                     <div>
-                        <label>Aktuální noty <span class="badge" id="noteCount">0</span></label>
+                        <label>Noty <span class="badge" id="noteCount">0</span></label>
                         <div class="note-list" id="noteList"></div>
                     </div>
                     <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                        <button class="btn btn-outline" id="clearNotesBtn">🗑️ Vymazat vše</button>
-                        <button class="btn btn-primary" id="renderBtn">🎨 Vykreslit noty</button>
+                        <button class="btn btn-outline" id="clearNotesBtn">🗑️ Vymazat</button>
+                        <button class="btn btn-primary" id="renderBtn">🎨 Vykreslit</button>
+                    </div>
+                </div>
+
+                <!-- Tab: Nastavení -->
+                <div class="tab-content" id="tab-settings">
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.125rem; font-weight: 600;">Knihovny pro vykreslování a přehrávání</h3>
+
+                    <div class="grid" style="gap: 1.5rem;">
+                        <!-- Knihovna pro vykreslování -->
+                        <div>
+                            <label for="renderLibrary">Knihovna pro vykreslování not</label>
+                            <select id="renderLibrary">
+                                <option value="abcjs" selected>ABC.js (se zvýrazněním not)</option>
+                                <option value="vexflow">VexFlow</option>
+                            </select>
+                            <p class="text-muted" style="margin-top: 0.5rem;">
+                                ABC.js: Podporuje zvýraznění právě hrané noty<br>
+                                VexFlow: Moderní, robustní vykreslování
+                            </p>
+                        </div>
+
+                        <!-- Knihovna pro přehrávání -->
+                        <div>
+                            <label for="audioSynth">Syntezátor pro přehrávání</label>
+                            <select id="audioSynth">
+                                <option value="soundfont-piano" selected>Piano Soundfont (realistický klavír)</option>
+                                <option value="polysynth-reverb">PolySynth + Reverb</option>
+                                <option value="polysynth">PolySynth (základní)</option>
+                                <option value="synth">Synth (jednoduchý)</option>
+                                <option value="membrane">MembraneSynth (perkusní)</option>
+                                <option value="metal">MetalSynth (kovový)</option>
+                            </select>
+                            <p class="text-muted" style="margin-top: 0.5rem;">
+                                Piano Soundfont: Nejrealistější zvuk piána (vzorky skutečného nástroje)<br>
+                                PolySynth + Reverb: Syntetický zvuk s prostorovým efektem<br>
+                                Ostatní: Různé syntetické zvuky
+                            </p>
+                        </div>
+
+                        <div style="padding-top: 1rem; border-top: 1px solid hsl(var(--border));">
+                            <button class="btn btn-primary" id="applySettingsBtn">
+                                ✓ Použít nastavení
+                            </button>
+                            <p class="text-muted" style="margin-top: 0.75rem;">
+                                Po změně nastavení je potřeba znovu načíst nebo vykreslit notový zápis.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -452,20 +497,20 @@
                 <h2 style="margin: 0;">Notový zápis</h2>
                 <div class="notation-controls">
                     <label style="margin: 0; font-size: 0.875rem;">Transpozice:</label>
-                    <select id="transposeSelect" style="width: auto; min-width: 180px;">
-                        <option value="0">Žádná změna</option>
-                        <option value="1">+1 půltón ↑</option>
-                        <option value="2">+2 půltóny ↑</option>
-                        <option value="3">+3 půltóny ↑</option>
-                        <option value="4">+4 půltóny ↑</option>
-                        <option value="5">+5 půltónů ↑</option>
-                        <option value="6">+6 půltónů ↑</option>
-                        <option value="-1">-1 půltón ↓</option>
-                        <option value="-2">-2 půltóny ↓</option>
-                        <option value="-3">-3 půltóny ↓</option>
-                        <option value="-4">-4 půltóny ↓</option>
-                        <option value="-5">-5 půltónů ↓</option>
-                        <option value="-6">-6 půltónů ↓</option>
+                    <select id="transposeSelect" style="width: auto; min-width: 160px;">
+                        <option value="0">Bez změny</option>
+                        <option value="1">+1 ↑</option>
+                        <option value="2">+2 ↑</option>
+                        <option value="3">+3 ↑</option>
+                        <option value="4">+4 ↑</option>
+                        <option value="5">+5 ↑</option>
+                        <option value="6">+6 ↑</option>
+                        <option value="-1">-1 ↓</option>
+                        <option value="-2">-2 ↓</option>
+                        <option value="-3">-3 ↓</option>
+                        <option value="-4">-4 ↓</option>
+                        <option value="-5">-5 ↓</option>
+                        <option value="-6">-6 ↓</option>
                     </select>
                     <button class="btn btn-sm btn-primary" id="transposeBtn">
                         Použít
@@ -492,8 +537,14 @@
     <!-- VexFlow -->
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
 
-    <!-- Tone.js -->
+    <!-- ABC.js -->
+    <script src="https://cdn.jsdelivr.net/npm/abcjs@6.4.0/dist/abcjs-basic-min.js"></script>
+
+    <!-- Tone.js with PolySynth for better sound -->
     <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
+
+    <!-- Soundfont Player for realistic piano -->
+    <script src="https://cdn.jsdelivr.net/npm/soundfont-player@0.12.0/dist/soundfont-player.min.js"></script>
 
     <!-- App -->
     <script src="app.js"></script>
