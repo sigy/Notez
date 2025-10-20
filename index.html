@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notez - Editor notového zápisu</title>
+    <style>
+        /* Shadcn/ui Light Theme */
+        :root {
+            --background: 0 0% 100%;
+            --foreground: 222.2 84% 4.9%;
+            --card: 0 0% 100%;
+            --card-foreground: 222.2 84% 4.9%;
+            --primary: 221.2 83.2% 53.3%;
+            --primary-foreground: 210 40% 98%;
+            --secondary: 210 40% 96.1%;
+            --secondary-foreground: 222.2 47.4% 11.2%;
+            --muted: 210 40% 96.1%;
+            --muted-foreground: 215.4 16.3% 46.9%;
+            --accent: 210 40% 96.1%;
+            --accent-foreground: 222.2 47.4% 11.2%;
+            --destructive: 0 84.2% 60.2%;
+            --destructive-foreground: 210 40% 98%;
+            --border: 214.3 31.8% 91.4%;
+            --input: 214.3 31.8% 91.4%;
+            --ring: 221.2 83.2% 53.3%;
+            --radius: 0.5rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            line-height: 1.5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Typography */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .text-muted {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+        }
+
+        /* Card */
+        .card {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        /* Tabs */
+        .tabs {
+            margin-bottom: 1.5rem;
+        }
+
+        .tab-list {
+            display: flex;
+            border-bottom: 1px solid hsl(var(--border));
+            gap: 0;
+        }
+
+        .tab-trigger {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .tab-trigger:hover {
+            color: hsl(var(--foreground));
+            background: hsl(var(--accent));
+        }
+
+        .tab-trigger.active {
+            color: hsl(var(--primary));
+            border-bottom-color: hsl(var(--primary));
+        }
+
+        .tab-content {
+            display: none;
+            padding-top: 1.5rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            height: 2.5rem;
+            padding: 0 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .btn-primary:hover {
+            background: hsl(var(--primary) / 0.9);
+        }
+
+        .btn-secondary {
+            background: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+        }
+
+        .btn-secondary:hover {
+            background: hsl(var(--secondary) / 0.8);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid hsl(var(--border));
+            color: hsl(var(--foreground));
+        }
+
+        .btn-outline:hover {
+            background: hsl(var(--accent));
+        }
+
+        .btn-sm {
+            height: 2rem;
+            padding: 0 0.75rem;
+            font-size: 0.813rem;
+        }
+
+        /* Input & Select */
+        .input, select {
+            width: 100%;
+            height: 2.5rem;
+            padding: 0 0.75rem;
+            border: 1px solid hsl(var(--input));
+            border-radius: var(--radius);
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            font-size: 0.875rem;
+            transition: all 0.15s ease;
+        }
+
+        .input:focus, select:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+        }
+
+        /* Label */
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: hsl(var(--foreground));
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-cols-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-cols-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        /* Notation Area */
+        .notation-area {
+            background: hsl(var(--card));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        .notation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .notation-controls {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        #notation {
+            padding: 2rem;
+            min-height: 250px;
+            overflow-x: auto;
+        }
+
+        /* Note Editor */
+        .note-list {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .note-item {
+            background: hsl(var(--secondary));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .note-item button {
+            background: hsl(var(--destructive));
+            color: hsl(var(--destructive-foreground));
+            border: none;
+            border-radius: 0.25rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.15s ease;
+        }
+
+        .note-item button:hover {
+            opacity: 0.9;
+        }
+
+        /* Playback Controls */
+        .playback-controls {
+            background: hsl(var(--muted));
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        /* Range Slider */
+        input[type="range"] {
+            width: 200px;
+            height: 0.5rem;
+            border-radius: var(--radius);
+            background: hsl(var(--secondary));
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: hsl(var(--primary));
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background: hsl(var(--primary));
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            border-radius: 9999px;
+            padding: 0.125rem 0.625rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: hsl(var(--secondary));
+            color: hsl(var(--secondary-foreground));
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-cols-2, .grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .notation-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: hsl(var(--muted-foreground));
+        }
+
+        /* Flex utilities */
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="margin-bottom: 2rem;">
+            <h1>🎵 Notez</h1>
+            <p class="text-muted">Moderní editor notového zápisu s transpozicí a přehrávačem</p>
+        </div>
+
+        <!-- Tabs Card -->
+        <div class="card">
+            <div class="tabs">
+                <div class="tab-list">
+                    <button class="tab-trigger active" data-tab="songs">📚 Načíst píseň</button>
+                    <button class="tab-trigger" data-tab="editor">✏️ Editor not</button>
+                </div>
+
+                <!-- Tab: Načíst píseň -->
+                <div class="tab-content active" id="tab-songs">
+                    <div class="grid grid-cols-2">
+                        <div>
+                            <label for="songSelect">Vyberte píseň</label>
+                            <select id="songSelect">
+                                <option value="">-- Vyberte píseň --</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button class="btn btn-primary" id="loadSongBtn" style="width: 100%;">
+                                📂 Načíst píseň
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab: Editor not -->
+                <div class="tab-content" id="tab-editor">
+                    <div class="grid grid-cols-3" style="margin-bottom: 1rem;">
+                        <div>
+                            <label for="noteSelect">Nota</label>
+                            <select id="noteSelect">
+                                <option value="c/4">C</option>
+                                <option value="d/4">D</option>
+                                <option value="e/4">E</option>
+                                <option value="f/4">F</option>
+                                <option value="g/4">G</option>
+                                <option value="a/4">A</option>
+                                <option value="b/4">B</option>
+                                <option value="c/5">C (vyšší)</option>
+                                <option value="d/5">D (vyšší)</option>
+                                <option value="e/5">E (vyšší)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="durationSelect">Délka</label>
+                            <select id="durationSelect">
+                                <option value="w">Celá nota (𝅝)</option>
+                                <option value="h">Půlová nota (𝅗𝅥)</option>
+                                <option value="q" selected>Čtvrťová nota (♩)</option>
+                                <option value="8">Osminová nota (♪)</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: flex-end;">
+                            <button class="btn btn-primary" id="addNoteBtn" style="width: 100%;">
+                                ➕ Přidat notu
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label>Aktuální noty <span class="badge" id="noteCount">0</span></label>
+                        <div class="note-list" id="noteList"></div>
+                    </div>
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
+                        <button class="btn btn-outline" id="clearNotesBtn">🗑️ Vymazat vše</button>
+                        <button class="btn btn-primary" id="renderBtn">🎨 Vykreslit noty</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notation Area -->
+        <div class="notation-area">
+            <div class="notation-header">
+                <h2 style="margin: 0;">Notový zápis</h2>
+                <div class="notation-controls">
+                    <label style="margin: 0; font-size: 0.875rem;">Transpozice:</label>
+                    <select id="transposeSelect" style="width: auto; min-width: 180px;">
+                        <option value="0">Žádná změna</option>
+                        <option value="1">+1 půltón ↑</option>
+                        <option value="2">+2 půltóny ↑</option>
+                        <option value="3">+3 půltóny ↑</option>
+                        <option value="4">+4 půltóny ↑</option>
+                        <option value="5">+5 půltónů ↑</option>
+                        <option value="6">+6 půltónů ↑</option>
+                        <option value="-1">-1 půltón ↓</option>
+                        <option value="-2">-2 půltóny ↓</option>
+                        <option value="-3">-3 půltóny ↓</option>
+                        <option value="-4">-4 půltóny ↓</option>
+                        <option value="-5">-5 půltónů ↓</option>
+                        <option value="-6">-6 půltónů ↓</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" id="transposeBtn">
+                        Použít
+                    </button>
+                </div>
+            </div>
+            <div id="notation">
+                <div class="loading">Vyberte píseň nebo vytvořte vlastní noty...</div>
+            </div>
+        </div>
+
+        <!-- Playback Controls -->
+        <div class="playback-controls">
+            <button class="btn btn-primary" id="playBtn">▶ Přehrát</button>
+            <button class="btn btn-secondary" id="stopBtn">⏹ Stop</button>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <label style="margin: 0;">Tempo:</label>
+                <input type="range" id="tempoSlider" min="60" max="200" value="120">
+                <span class="badge" id="tempoValue">120 BPM</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- VexFlow -->
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+
+    <!-- Tone.js -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.js"></script>
+
+    <!-- App -->
+    <script src="app.js"></script>
+</body>
+</html>
